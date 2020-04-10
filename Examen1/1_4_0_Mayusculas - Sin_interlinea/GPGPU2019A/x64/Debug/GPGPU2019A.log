@@ -1,0 +1,16 @@
+﻿  stdafx.cpp
+  CDXManager.cpp
+  CDXShader.cpp
+  CImageProcessor.cpp
+c:\users\carlos_cordero\desktop\maestria\04_gpus\examen1\1_4_0_mayusculas - sin_interlinea\gpgpu2019a\cimageprocessor.cpp(45): warning C4267: 'argumento': conversión de 'size_t' a 'UINT'; posible pérdida de datos
+  CParticleSystem.cpp
+c:\users\carlos_cordero\desktop\maestria\04_gpus\examen1\1_4_0_mayusculas - sin_interlinea\gpgpu2019a\cparticlesystem.cpp(32): warning C4267: '=': conversión de 'size_t' a 'UINT'; posible pérdida de datos
+c:\users\carlos_cordero\desktop\maestria\04_gpus\examen1\1_4_0_mayusculas - sin_interlinea\gpgpu2019a\cparticlesystem.cpp(69): warning C4267: 'argumento': conversión de 'size_t' a 'UINT'; posible pérdida de datos
+c:\users\carlos_cordero\desktop\maestria\04_gpus\examen1\1_4_0_mayusculas - sin_interlinea\gpgpu2019a\cparticlesystem.cpp(77): warning C4267: 'argumento': conversión de 'size_t' a 'UINT'; posible pérdida de datos
+c:\users\carlos_cordero\desktop\maestria\04_gpus\examen1\1_4_0_mayusculas - sin_interlinea\gpgpu2019a\cparticlesystem.cpp(90): warning C4267: 'argumento': conversión de 'size_t' a 'UINT'; posible pérdida de datos
+c:\users\carlos_cordero\desktop\maestria\04_gpus\examen1\1_4_0_mayusculas - sin_interlinea\gpgpu2019a\cparticlesystem.cpp(117): warning C4267: '=': conversión de 'size_t' a 'UINT'; posible pérdida de datos
+  GPGPU2019A.cpp
+c:\users\carlos_cordero\desktop\maestria\04_gpus\examen1\1_4_0_mayusculas - sin_interlinea\gpgpu2019a\gpgpu2019a.cpp(130): warning C4305: '=': truncamiento de 'double' a 'float'
+  Matrix4D.cpp
+  Generando código...
+  GPGPU2019A.vcxproj -> C:\Users\CARLOS_CORDERO\Desktop\Maestria\04_GPUs\Examen1\1_4_0_Mayusculas - Sin_interlinea\x64\Debug\GPGPU2019A.exe

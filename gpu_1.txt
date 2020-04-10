@@ -1,0 +1,17 @@
+instalacion 
+--------------------
+desarrollo para el escritorio con c++
+desarrollo de escritorio de .NET
+desarrollo de juegos con c++
+
+workspace
+--------------------
+windows Application.exe
+Precompoiled Header
+
+Seurity Development Lifecycle
+
+
+5 hasta final borrar
+
+gpu-z

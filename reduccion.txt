@@ -1,0 +1,20 @@
+Reduccion
+
+Una reduction  es la proyecion de un conjunto de datos en C^n a C^n-1.
+
+
+Ejemplo: f(V) = v   f(M) = V
+
+f(  [1 2 3]) =  [6]
+    [4 5 6]     [15]
+    
+Uso:
+Estadistica
+    Deteccion de patrones (Series Markov/Perceptrones)
+Procesamiento de imagenes
+        suavisar, elimianr ruidos, resaltar detalles, HDR(Ajusto images de rango amplio(los sensores tienes rangos muy amplio) al rango de compu 255).
+Evaluacion de redes neuronales (las salidas de la red son menores de datos que las entradas)
+
+Primero se debe suponer que la entrada es multiplo de2   (2^n).
+Y aplicar recursividad.
+    

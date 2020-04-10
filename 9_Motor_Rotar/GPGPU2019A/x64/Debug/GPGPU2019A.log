@@ -1,0 +1,9 @@
+﻿  stdafx.cpp
+  CDXManager.cpp
+  CDXShader.cpp
+  CImageProcessor.cpp
+c:\users\carlos_cordero\desktop\gpgpu2019a\gpgpu2019a\cimageprocessor.cpp(34): warning C4267: 'argumento': conversión de 'size_t' a 'UINT'; posible pérdida de datos
+  GPGPU2019A.cpp
+  Matrix4D.cpp
+  Generando código...
+  GPGPU2019A.vcxproj -> C:\Users\CARLOS_CORDERO\Desktop\GPGPU2019A\x64\Debug\GPGPU2019A.exe

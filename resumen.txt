@@ -1,0 +1,122 @@
+Resumen
+----------------
+Direct3D 11 también conocido como DirectCompute technology. Por ejemplo el 11 en Direct3D es 5.0 en el otro.
+Es programado en  HLSL y esta hecho para programar en el GPU.
+Con el método D3D11DeviceContex::Dispatch se mandan llamar métodos definidos en el Shader.
+Número máximo de UAVs por shader son 8.
+Suportan el paso de datos por buffers, SRVs(Shader Resourse View) y UAVs(Unordered Access View).
+Soportan operaciones dobles y flotantes.
+Para poder proyectar la informacion en el monitor se usan las APIs de IDXFISwapChain.
+
+Memoria
+----------------
+ID3D11Resource representa cualquier recurso de memoria.
+UAVs y SRVs apuntan de CPU a la cache(Memoria que puede leer/escribir el GPU directamente) no a la memoria RAM mapeada.
+
+
+Hilos y grupos
+----------------
+El máximo número de hilos por grupo es 1024, y pues así mismo a la hora de definir un grupo sus componentes X y Y están limitadas a 1024 y Z a 64.
+El número máximo de grupos es 65535.
+
+Es necesario definir el grupo con sus dimensiones o hilos por dimension del grupo, normalmente es bueno tomar multiplos de 16.
+Si solo se van a analizar un vector de entradas entonces el grupo puede ser definido como 256x1x1.
+Si se trabaja con una imagen(Texture2D) entonces el grupo puede ser 16x16x1.
+
+Y así se puede saber cuantos grupos se necesitaran en cada dimension.
+Ejemplo:
+Si se tienen 1000 particulas a analizar entonces se usaran 5x1x1 grupos de 256x1x1.
+Si se tiene una imagen de 1000x1100 pixeles, se necesitaran 63x69x1 grupos de 16x16x1.
+
+Memoria compartida y sincronizacion.
+----------------
+Tiene memoria compartida y sincronización de hilos para poder optimizar el paralelismo. 
+El tamaño maximo de memoria compartida es 32KB.
+La memoria compartida permite intercambiar informacion entre hilos, sin esta memoria la unica manera de pasar un dato de un hilo a otro seria hacer un dispatch, 
+luego reacomodar la memoria y volverla a pasar a los buffers y volver a procesar, pero esto es muy costoso en tiempo de transferencia de memoria.
+Los hilos pueden diverger esto es porque cada hilo puede requerir distintos caminos de ejecucion debido a bifurcaciones apesar de estar corriendo el mismo codigo,
+esto provoca que varios hilos esten esperando a que otros terminen, a esto se le llama divergencia.
+Para poder sincronizar en caso de divergencia, se usan "Barreras" que son como checkpoints de los hilos para continuar, 
+por ejemplo se puede pedir que los hilos no continuen su ejecucion en cierto punto hasta que todos los hilos hayan terinado de escribir en la memoria compartida.
+
+Buffers
+----------------
+Los buffers de constantes tienen que ser multiplos de 16 porque se mapean a registros del GPU.
+
+Acceso:
+D3D11_CPU_ACCESS_WRITE: Para buffers de constantes o estructurados, en general cuando solo se necesita escribir.
+
+Usos de buffers:
+D3D11_USAGE_STAGING: Para transportar informacion entre dos recursos compatibles se usan andamios.
+D3D11_USAGE_DYNAMIC: Si el CPU escribe varias veces un recurso en el GPU.
+D3D11_USAGE_INMUTABLE: Escruto solo una vez por el GPU y solo lecture.
+D3D11_USAGE_DEFAULT: Leido y escrito por el GPU.
+
+Bloqueo de memoria y mapeo:
+D3D11_MAP_WRITE_DISCARD: Para buffers de constantes.
+D3D11_MAP_READ_WRITE: Para andamios.
+D3D11_MAP_WRITE: Para buffers estructurados.
+
+Bind:
+D3D11_BIND_UNORDERED_ACCESS: para leer y escribir y asignar a una UAV
+D3D11_BIND_SHADER_RESOURCE: para leer por el GPU como recurso normalmete asignado a una SRV
+D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE: si se asignara a UAV y SRV
+
+StructureByteStride: Solu usado por los buffers structurados para poner el tamaño de la estructura.
+
+
+Samplers
+----------------
+Solo trabajan con SRVs.
+Sirven para interpolar valores o filtral pixeles cuando se agranda o reduce la imagen para hacer mas continua la imagen.
+Tambien sirven pra saber que se va a hacer en las seciones fuera de la imagen provista al GPU, pueden reflejarse o hacer mas cosas.
+
+
+-------------------------------------------------------
+Staging y cache de GPU
+------------------------
+Para pasar informacion a la cache cercana del GPU primero hacemos un Staging del CPU a GPU, eso pasara la informacion a la RAM del GPU pero para mandarla
+a cache es necesario otra tranferencia default. Tambien hay buffers estructurados, esos no se ponen directamente en registros por lo que su tamaño no necesariamente es de 16,
+pero se manejan igual.
+Los UAV/SRV estaran ligados a memoria cache, ya el driver se administra en como hacer la transferencia.
+LOs buffers staging por lo tanto no es necesario guardarlos solo cuando queremos hacer una transferencia de CPU a GPU solo le pedimos al device que nos cree un buffer entre
+el buffer en cache y el buffer staging que creamos, luego mapeamos y copiamos.
+
+Constants buffers
+--------------------
+Los constant buffers van directo a los registros del GPU, por eso deben de pasarse en multiplos de 16 y deben ser pocos datos muy usados.
+En general no se necesita mapeo para cargar los constant buffers si solo se hace en a inicializacion, pero si se hacen las tranferencias en ejecucion entonces
+si sera necesario usar un D3D11_MAPPED_SUBRESOURCE y map.
+
+
+Asignacion de memoria, UAV, SRV de CPU a GPU
+--------------------
+Hay una relacion entre la declaracion de los buffers y la declaracion de las variables del GPU(HLSL).
+El ligado sera mediante el bind, Usage y misc.
+Ejemplos:
+cbuffer pero que solo vamos a escribir del CPU al GPU varias veces:
+    D3D11_CPU_ACCESS_WRITE
+    D3D11_USAGE_DYNAMIC
+    D3D11_BIND_CONSTANT_BUFFER
+
+RWStructuredBuffer:
+    D3D11_USAGE_DEFAULT por el RW
+    D3D11_RESOURCE_MISC_BUFFER_STRUCTURED
+    D3D11_BIND_UNORDERED_ACCESS
+
+
+Entre estos dos no importa el orden de declaracion de los buffers porque VAN A MEMORIA DISTINTA.
+Pero si tenemos por ejemplo dos RWStructuredBuffer, entoces el orden de creacion de buffers y declaracion de variable deben ser el mismo.
+
+NOTA1: si un buffer en el HLSL no se usa es como si no existiera, y no entra en esta cuenta mensionada.
+NOTA2: si nosotros queremos asignar el orden de forma manual, entonces despues de la declaracion agregagos :register(u<indice>), pero entonces la NOTA1, ya no aplicara.
+ejemplo:
+RWStructuredBuffer <Particle> Particles:register(u0);
+Este incide empieza en 0 para cada SRV, UAV.
+
+
+Asignacion de memoria, UAV, SRV de GPU a CPU
+--------------------
+En las seccion anterior "Asignacion de memoria, UAV, SRV de CPU a GPU" ya quedaron definidos los socalos.
+ahora cuando se use context.CSSetUnorderedAccessViews(socalo,....), context.CSSetShaderResourceViews(socalo,....) se debera tomar ese orden en cuenta.
+

@@ -1,0 +1,196 @@
+CDXManager
+-----------------------------------------
+Provide APIs to:
+    Select and initilize the device or adapter to use.
+    Create the Swapchain if needed.
+    Compile Shaders.
+    Load images into the GPU in a section of memory were it can be processed.
+    
+ChoseAdapter 
+-------------
+Returns the adapter o device to use CPU or GPU.
+It first read all the resources that the computer can provide then it iterates over all of them, printing the features in a message box,
+the user has to the one with the features required.
+IDXGIFactory: Provide the resources of the computer from fabric.
+IDXGIAdapter: adapter o device to use CPU or GPU.
+DXGI_ADAPTER_DESC: Features of an adapter.
+
+
+Initialize
+-------------
+Match a device or adapter with the version of directX that is going to be used, driver type, SDK version.
+If it is needed to plot in monitor a swap chain will be created.
+According with the information provided above the members m_pDev(device), m_pCtx(device context) and m_pSwapChain(swap chain) will be loaded.
+
+DXGI_SWAP_CHAIN_DESC: Features of a swap chain.
+Features of a swapchain :  
+    BufferCount: size of buffer(Note: every buffer is size high x width)
+    BufferUsage: render an an UAV will place the info: DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS.
+    Windowed: Plotted in a window...
+    OutputWindow: withdow ID were the image is plotted.
+    SwapEffect: No effets when doing the transition between buffers: DXGI_SWAP_EFFECT_FLIP_DISCARD.
+    SampleDesc.Count, Quality: samples and  quality of every pixel, we are just placin the info procesed one time per screening then count:1,
+    some camera sensors have an extreme good quality but it is not the case the Quality:0.
+    BufferDesc.Format: Normally from 0-255 for RGBA.
+    BufferDesc.Hight, Width: Normall a multiple of 16. 1024x1024 is OK.
+    BufferDesc.Scaling,ScanlineOrdering: Image streched and printing from first one to last one.
+    BufferDesc.RefreshRate: Take the refresh rate of the monitor: 0/0
+    
+    
+Uninitilize
+-------------
+Free the memory of the members m_pDev(device), m_pCtx(device context) and m_pSwapChain(swap chain) will be loaded. 
+
+CompileCS
+-------------
+Compiles an HLSL file pwszFileName passed as an string, pszEntryPoint shall always be "main".
+    
+LoadTexture
+-------------
+Reads a bitmap image. The image will be just one, it will be taken as vertex, same format of the monitor 1 byte per RGBA as well as samples and quality, 
+the access will be read/write, will be a staging, same width and high of the image.
+Then we ask the device to set a section of memory with the features specified and it will return an address. We can not write directly into the device,
+but the address provided is mapped to a memory into the device. The context is going provide us a CPU memory where the address will be mapped.
+We are working with 1 byte per RGB then biBitCount is 8x3=24, but the memory format in the device is RGBA then we need to add another byte.
+All the image with the alfa added will be paced in one single buffer and at the address mapped.Then we use the context to unmap.
+We have already defined the buffer that is going to connect the CPU data with GPU but this data into the GPU can not be used to be used  as read/write
+we need a buffer with usage: D3D11_USAGE_DEFAULT, and once again the context is the one that is going to make the copy of the resource, 
+in this case a mapping is not required.
+
+We have already defined the buffers and loaded the image into the mapped address but to really transfer the image we need a SRV and  point it to the address
+were is the memory that can be read/write by the GPU. Once the SRV is created the data is transfered.
+
+D3D11_TEXTURE2D_DESC: Texture features.
+    ArraySize: Number of textures.
+    BindFlags: Datatype of buffer.
+ID3D11Texture2D: 2D Texture or image.
+
+
+CDXShader
+-----------------------------------------
+This is a father class for the other particular Shader processors.
+
+Initialize
+-------------
+Use a CDXManager instance to compile all the required fragments.
+If the CDXManager instance has a swapchain, assign an UAV to it.
+
+
+CImageProcessor:: CDXShader
+-----------------------------------------
+Creates and load a buffer that is going to be a tensor matrix that can be updated on running time.
+Load an image.
+
+OnBegin
+-------------
+Create a buffer of constants BUT it can be written many times. The variable transfered via the buffer will be a transform matrix.
+
+
+OnCompute
+-------------
+0:
+First the buffer of constants is mapped and the new values are placed into the mapped memory.
+buffers, AUV, SRV and shader are assigned to the context.
+The resources of the UAV that is mapped to the monitor are taken to then take the description.
+Context call the dispatch with the correct number of groups. Consider that the group is size 16x16x1
+
+LoadPicture
+-------------
+Use the device to load the image and the SRV is stored into the local members.
+
+
+
+CParticleSystem:: CDXShader
+-----------------------------------------
+
+OnBegin
+-------------
+Creates a buffer that can be read/written many times.
+Creates and structured buffer for the particles and assign it to an AUV.
+We create a Stage buffer connected to RAM and that can be mapped to CPU. The mapped memory in CPU is loaded and then the data is copied from GPU RAM
+to structured buffer in cache.
+ 
+OnCompute
+-------------
+0:
+Write constan buffer of params.
+Set AUVs, shaders, and dispatch, consider that the group is now 256x1x1.
+
+1:
+Set AUVs, shaders, and dispatch, consider that the group is now 256x1x1.
+
+
+GetNumberOfPasses
+-------------
+Return compute options
+
+
+CVectorSum :: CDXShader
+-----------------------------------------
+
+OnBegin
+-------------
+First create a buffer read by the GPU(D3D11_BIND_SHADER_RESOURCE) that is going to retain all the vertex in cache. 
+Then create a buffer that can be assigned to a UAV(D3D11_BIND_UNORDERED_ACCESS) that has the sum of all the vertex in groups of 512 in cache.
+We assign the first one to a SRV but we need firs to make clear that it is a buffer(D3D11_SRV_DIMENSION_BUFFER), and clarify that the format is float4.
+We assign the second buffer to a UAV we need firs to make clear that it is a buffer(D3D11_SRV_DIMENSION_BUFFER), and clarify that the format is float4.
+We create a stage buffer to map the data from CPU to RAM GPU, then we place the vertex data in the mapped address and close the mapping to pass the 
+data to the GPU.
+Finally we copy the vertex from the buffer in GPU RAN to buffer in cache.
+
+OnCompute
+-------------
+0:
+Using the context we set the shader and assign UAV and SRV and dispatch.
+
+
+GetNumberOfPasses
+-------------
+
+
+OnEnd
+-------------
+Takes the description of the buffer assigned to the UAV to create a stage buffer in RAM for reading.
+Copy the data from the buffer in cache to RAM.
+Use the context to Map the buffer in RAM and and copy the data in the mapped memory to a local variable in CPU code.
+Finally the unmap. 
+
+
+
+GPGPU2019A
+-----------------------------------------
+Creates a CImageProcessor instance.
+Creates a CParticleSystem instance.
+Create a CVectorSum instance.
+
+Main:
+    Register a window and assign its thread the function WinProc to it.
+    Create a window.
+    Use the CDXManager instance to chose a device or adapter.
+    Use the CDXManager to link the window created with the swapchain and the adapter.
+    Use CImageProcessor instance to compile its fragments.
+    Use CImageProcessor instance onBegin to create the required buffers.
+    Use CImageProcessor instance to load an image.
+    Use CParticleSystem instance to compile its fragments.
+    Create particles.
+    Set CParticleSystem instance params.
+    Use CParticleSystem instance onBegin to create the required buffers based in particles and params.
+    Use CVectorSum instance to compile its fragments.
+    Read document of vertex.
+    Use CVectorSum instance onBegin to create the required buffers based in vertex.
+    Use CVectorSum to sum all the vertex.
+    Use CVectorSum to take the addition from the GPU.
+    Calculate the average at every dimension
+    Receive messages from the threads and until the messages are different to WM_QUIT keep here.
+    
+
+WinProc:
+    WM_KEYDOWN, WM_KEYUP: Update button pressed.
+    WM_CREATE:
+        Create a timer with the even 1.
+    WM_TIMER:
+        1: Update buffers. No print.
+        
+    WM_PAINT:
+        Compute and print.
+    

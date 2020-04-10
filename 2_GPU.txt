@@ -1,0 +1,10 @@
+GPU2
+
+Se puede borrar debug  .vs
+
+Para ver y tener acceso a los drivers de la computadora
+propiedades -> Entrada -> [Agregar dxgi.lib] [Agregar d3d11.lib]
+Para poder SIMD
+propiedades -> Entrada -> [Agregar d3dcompiler.lib]
+Constantes utiles para manejar las librerias anteriores
+propiedades -> Entrada -> [Agregar dxguid.lib]

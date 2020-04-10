@@ -1,0 +1,26 @@
+Procesamiento de particulas
+----------------------------
+En fisica se puede utilizar le GPU para analizar la relacion de millones de cuerpos conocidos como 
+particula y su interacccin entre estas.
+
+Analisis del movimiento: Cinematica.
+
+No importa masa, ni fuerza, solo velocidad y haceleracion.
+
+Ejemplo pretexto: simular una explosion de partiulas emoanada de un punto concreto. (Explosion solar).
+
+Particula: 
+    Posicion            P= integral(V(t)) + P0
+    Velocidad           V= integral(a(t)) + V0
+    Aceleracion         F= m a ,    a = F/m
+    Fuerza
+    Masa
+    
+----------------- La simulacion debe discretizarse de un modelo continuo -----------
+Una simulacion fisica porlo general se discretiza el tiempo.
+Integral y derivada son operaciones infinitesimales. Esto no puede ser procesado porque es continuo 
+pero si representarlo.
+            Integral aprox Sigma(f(t)*dt, -inf,inf, dt->0)
+
+            V' := V + a(t)*dt
+            P' := P + V(t)*dt   = P + (V + a(t)*dt)*dt
